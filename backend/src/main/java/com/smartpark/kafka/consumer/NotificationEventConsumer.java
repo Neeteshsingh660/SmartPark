@@ -13,6 +13,7 @@ import java.util.Map;
 @Service
 @Slf4j
 @RequiredArgsConstructor
+@org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(name = "spring.kafka.enabled", havingValue = "true", matchIfMissing = true)
 public class NotificationEventConsumer {
 
     // Inject the WebSocket messaging template

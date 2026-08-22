@@ -11,7 +11,7 @@ class WebSocketService {
     if (this.client && this.client.connected) return;
 
     this.client = new Client({
-      webSocketFactory: () => new SockJS('/ws'),
+      webSocketFactory: () => new SockJS(import.meta.env.VITE_WS_URL || 'https://smartpark-cxhb.onrender.com/ws'),
       reconnectDelay: 5000,
       debug: (str) => {
         // Uncomment for dev debugging

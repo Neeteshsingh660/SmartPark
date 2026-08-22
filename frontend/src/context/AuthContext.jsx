@@ -51,9 +51,6 @@ export const AuthProvider = ({ children }) => {
       setActiveRole(role);
 
       addToast(`Welcome back, ${name}! Logged in as ${role}.`, 'success');
-      setTimeout(() => {
-        window.location.href = '/';
-      }, 500);
       return res.data;
     }
   };
@@ -72,9 +69,6 @@ export const AuthProvider = ({ children }) => {
       setActiveRole(role);
 
       addToast(`Account created successfully! Welcome, ${name}.`, 'success');
-      setTimeout(() => {
-        window.location.href = '/';
-      }, 500);
       return res.data;
     }
   };

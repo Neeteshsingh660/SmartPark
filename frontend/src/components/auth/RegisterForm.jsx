@@ -38,8 +38,11 @@ export const RegisterForm = ({ initialRole = 'DRIVER', onSuccess, onSwitchToLogi
     }
     setSendingOtp(true);
     try {
-      await sendOtp(email);
+      const res = await sendOtp(email);
       setOtpSent(true);
+      if (res && res.data && res.data.otp) {
+        setOtp(res.data.otp);
+      }
     } catch (err) {
       addToast(err.message || 'Failed to send OTP', 'error');
     } finally {

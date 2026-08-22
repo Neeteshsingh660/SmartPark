@@ -20,15 +20,16 @@ public class AuthController {
 
     // NEW ENDPOINT TO SEND OTP
     @PostMapping("/send-otp")
-    public ResponseEntity<ApiResponse<Void>> sendOtp(@Valid @RequestBody SendOtpRequest request) {
+    public ResponseEntity<ApiResponse<java.util.Map<String, String>>> sendOtp(@Valid @RequestBody SendOtpRequest request) {
         try {
-            authService.sendRegistrationOtp(request.getEmail());
-            return ResponseEntity.ok(ApiResponse.<Void>builder()
+            String otp = authService.sendRegistrationOtp(request.getEmail());
+            return ResponseEntity.ok(ApiResponse.<java.util.Map<String, String>>builder()
                     .success(true)
-                    .message("OTP sent successfully to " + request.getEmail())
+                    .message("OTP sent successfully to " + request.getEmail() + ". (OTP: " + otp + ")")
+                    .data(java.util.Map.of("otp", otp, "email", request.getEmail()))
                     .build());
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(ApiResponse.<Void>builder()
+            return ResponseEntity.badRequest().body(ApiResponse.<java.util.Map<String, String>>builder()
                     .success(false)
                     .message(e.getMessage())
                     .build());

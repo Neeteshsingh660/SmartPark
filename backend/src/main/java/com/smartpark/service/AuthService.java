@@ -25,11 +25,11 @@ public class AuthService {
     private final RedisOtpService redisOtpService;
 
     // 2. ADD METHOD TO SEND OTP
-    public void sendRegistrationOtp(String email) {
+    public String sendRegistrationOtp(String email) {
         if (userRepository.existsByEmail(email)) {
             throw new IllegalArgumentException("Email already in use");
         }
-        redisOtpService.generateAndSendOtp(email);
+        return redisOtpService.generateAndSendOtp(email);
     }
 
     // 3. UPDATE REGISTER METHOD TO VERIFY OTP

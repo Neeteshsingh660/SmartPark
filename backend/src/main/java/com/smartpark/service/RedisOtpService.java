@@ -25,7 +25,7 @@ public class RedisOtpService {
     @org.springframework.beans.factory.annotation.Value("${spring.mail.username:neeteshsingh660@gmail.com}")
     private String fromEmail;
 
-    public void generateAndSendOtp(String email) {
+    public String generateAndSendOtp(String email) {
         // 1. Generate 6-digit OTP
         String otp = String.format("%06d", new Random().nextInt(999999));
 
@@ -55,6 +55,7 @@ public class RedisOtpService {
             // Log OTP so user/admin is not blocked if Gmail SMTP fails or throttles
             log.warn("⚠️ Demo Fallback: Use OTP [{}] to verify registration for {}", otp, email);
         }
+        return otp;
     }
 
     public boolean verifyOtp(String email, String providedOtp) {

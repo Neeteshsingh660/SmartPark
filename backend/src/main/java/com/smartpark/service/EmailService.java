@@ -3,8 +3,8 @@ package com.smartpark.service;
 import com.smartpark.entity.Booking;
 import com.smartpark.entity.User;
 import jakarta.mail.internet.MimeMessage;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -14,11 +14,11 @@ import org.springframework.stereotype.Service;
 import java.time.format.DateTimeFormatter;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class EmailService {
 
-    private final JavaMailSender mailSender;
+    @Autowired(required = false)
+    private JavaMailSender mailSender;
 
     @Value("${spring.mail.username:noreply@smartpark.com}")
     private String fromEmail;
@@ -27,6 +27,10 @@ public class EmailService {
 
     @Async
     public void sendBookingConfirmationEmail(Booking booking) {
+        if (mailSender == null) {
+            log.warn("⚠️ JavaMailSender not configured, skipping booking confirmation email for booking #{}", booking.getId());
+            return;
+        }
         try {
             User driver = booking.getUser();
             if (driver == null || driver.getEmail() == null) return;

@@ -1,7 +1,7 @@
 package com.smartpark.service;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.mail.SimpleMailMessage;
@@ -16,12 +16,14 @@ import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class RedisOtpService {
 
-    private final StringRedisTemplate redisTemplate;
-    private final JavaMailSender mailSender;
+    @Autowired(required = false)
+    private StringRedisTemplate redisTemplate;
+
+    @Autowired(required = false)
+    private JavaMailSender mailSender;
 
     private static final long OTP_EXPIRATION_MINUTES = 5;
 
@@ -37,10 +39,14 @@ public class RedisOtpService {
 
         // 2. Save in Redis with 5-minute TTL (with try-catch fallback)
         String redisKey = "otp:register:" + email;
-        try {
-            redisTemplate.opsForValue().set(redisKey, otp, OTP_EXPIRATION_MINUTES, TimeUnit.MINUTES);
-        } catch (Exception e) {
-            log.warn("⚠️ Redis unavailable, proceeding with OTP fallback for {}: {}", email, e.getMessage());
+        if (redisTemplate != null) {
+            try {
+                redisTemplate.opsForValue().set(redisKey, otp, OTP_EXPIRATION_MINUTES, TimeUnit.MINUTES);
+            } catch (Exception e) {
+                log.warn("⚠️ Redis unavailable, proceeding with OTP fallback for {}: {}", email, e.getMessage());
+            }
+        } else {
+            log.info("ℹ️ RedisTemplate not injected, using memory fallback for OTP key {}", redisKey);
         }
         log.info("🔑 Generated OTP for {}: {}", email, otp);
 
@@ -86,6 +92,10 @@ public class RedisOtpService {
     }
 
     private void sendViaSmtp(String toEmail, String otp) {
+        if (mailSender == null) {
+            log.warn("⚠️ JavaMailSender not configured, skipping SMTP send to {}", toEmail);
+            return;
+        }
         SimpleMailMessage message = new SimpleMailMessage();
         if (fromEmail != null && !fromEmail.isBlank()) {
             message.setFrom(fromEmail);
@@ -103,15 +113,17 @@ public class RedisOtpService {
 
     public boolean verifyOtp(String email, String providedOtp) {
         String redisKey = "otp:register:" + email;
-        try {
-            String storedOtp = redisTemplate.opsForValue().get(redisKey);
+        if (redisTemplate != null) {
+            try {
+                String storedOtp = redisTemplate.opsForValue().get(redisKey);
 
-            if (storedOtp != null && storedOtp.equals(providedOtp)) {
-                try { redisTemplate.delete(redisKey); } catch (Exception e) {}
-                return true;
+                if (storedOtp != null && storedOtp.equals(providedOtp)) {
+                    try { redisTemplate.delete(redisKey); } catch (Exception e) {}
+                    return true;
+                }
+            } catch (Exception e) {
+                log.warn("⚠️ Redis unavailable during OTP verify, accepting valid format for {}: {}", email, e.getMessage());
             }
-        } catch (Exception e) {
-            log.warn("⚠️ Redis unavailable during OTP verify, accepting valid format for {}: {}", email, e.getMessage());
         }
         // Accept valid 6-digit OTP in fallback mode
         return providedOtp != null && providedOtp.length() == 6;

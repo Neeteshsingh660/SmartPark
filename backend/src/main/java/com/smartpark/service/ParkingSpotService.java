@@ -25,6 +25,11 @@ public class ParkingSpotService {
         User owner = userRepository.findByEmail(ownerEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("Owner not found"));
 
+        if (owner.getRole() != com.smartpark.entity.Role.OWNER && owner.getRole() != com.smartpark.entity.Role.ADMIN) {
+            owner.setRole(com.smartpark.entity.Role.OWNER);
+            userRepository.save(owner);
+        }
+
         ParkingSpot spot = ParkingSpot.builder()
                 .owner(owner)
                 .title(request.getTitle())

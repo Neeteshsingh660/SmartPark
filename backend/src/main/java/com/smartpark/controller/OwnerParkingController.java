@@ -18,7 +18,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/owner/parking")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('OWNER')") // Enforces that ONLY users with the OWNER role can hit these endpoints
+@PreAuthorize("hasAnyRole('OWNER', 'DRIVER', 'ADMIN')")
 public class OwnerParkingController {
 
     private final ParkingSpotService parkingSpotService;
